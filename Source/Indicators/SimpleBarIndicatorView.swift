@@ -8,53 +8,43 @@
 import SwiftUI
 
 struct SimpleBarIndicatorView: View {
-    
-    let min: Float = 0.0
-    let max: Float = 1.0
-    @State private var value: Float = 0.0
-    @State private var barOpacity: Double = 1.0
-    
+    @State private var offsetPercentage: CGFloat = 0.0
+
     var backgroundColor: Color {
         #if os(iOS) || os(watchOS) || os(tvOS)
-        return Color.gray
+        return Color.black.opacity(0.2)
         #elseif os(macOS)
         return Color(NSColor.controlBackgroundColor)
         #endif
     }
-    
-    var barColor: Color {
-        #if os(iOS) || os(watchOS) || os(tvOS)
-        return Color.blue
-        #elseif os(macOS)
-        return Color(NSColor.controlAccentColor)
-        #endif
-    }
-    
+
     var body: some View {
         let animation = Animation
-            .easeInOut(duration: 2.0)
+            .linear(duration: 1)
             .repeatForever(autoreverses: false)
-        
+
         return GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 Rectangle()
                     .frame(width: geometry.size.width , height: geometry.size.height)
                     .opacity(0.3)
-                    .foregroundColor(self.backgroundColor)
-                
+                    .foregroundColor(backgroundColor)
                 Rectangle()
-                    .frame(width: Swift.min(CGFloat((self.max-self.min)*self.value)*geometry.size.width, geometry.size.width), height: geometry.size.height)
-                    .foregroundColor(self.barColor)
-                    .opacity(self.barOpacity)
+                    .frame(width: barWidth(fullWidth: geometry.size.width), height: geometry.size.height)
+                    .cornerRadius(geometry.size.height / 2)
+                    .offset(x: geometry.size.width * offsetPercentage, y: 0)
                     .onAppear(perform: {
-                        self.value = 0
-                        self.barOpacity = 1.0
+                        offsetPercentage = 0
                         withAnimation(animation) {
-                            self.value = 1
+                            offsetPercentage = 1
                         }
                     })
             }
             .cornerRadius(geometry.size.height / 2)
         }
+    }
+
+    private func barWidth(fullWidth: CGFloat) -> CGFloat {
+        fullWidth * 0.15 * (1 + offsetPercentage * 3 / 4)
     }
 }
